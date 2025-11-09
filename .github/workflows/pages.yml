@@ -22,7 +22,11 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v4
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+      - name: Upload artifact for Pages
+        # usar la versión que usa upload-artifact v4
+        uses: actions/upload-pages-artifact@v2
         with:
           path: ./
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
