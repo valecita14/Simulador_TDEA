@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de viaje al TDEA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .screen {
+            display: none;
+            padding: 60px 40px;
+            text-align: center;
+            min-height: 600px;
+            animation: slideIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* PANTALLA INICIAL */
+        .initial-screen h1 {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .initial-screen h2 {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        .emoji-large {
+            font-size: 4em;
+            margin: 30px 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* PANTALLAS DE PREGUNTAS */
+        .question-screen h2 {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 40px;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .option-btn {
+            padding: 20px;
+            font-size: 1.1em;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .option-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(10px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .option-btn:active {
+            transform: translateX(10px) scale(0.98);
+        }
+
+        /* PANTALLA DE RESULTADOS */
+        .results-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .results-card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .results-card h2 {
+            font-size: 2em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .results-card p {
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .result-stat {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .emoji-inline {
+            font-size: 2em;
+            margin: 0 10px;
+        }
+
+        .insight {
+            background: #f0f4ff;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin: 15px 0;
+            text-align: left;
+            border-radius: 5px;
+        }
+
+        /* DATOS DEL ESTUDIO */
+        .study-data {
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 15px;
+        }
+
+        .study-data h3 {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 25px;
+        }
+
+        .data-section {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .data-section h4 {
+            font-size: 1.2em;
+            color: #764ba2;
+            margin-bottom: 15px;
+        }
+
+        .data-item {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.05em;
+        }
+
+        .data-item .emoji-data {
+            font-size: 1.8em;
+        }
+
+        .percentage {
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .final-message {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #667eea;
+            margin: 30px 0;
+            line-height: 1.8;
+        }
+
+        /* BOTONES DE NAVEGACIÓN */
+        .btn-container {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 15px 35px;
+            font-size: 1em;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f4ff;
+            transform: translateY(-3px);
+        }
+
+        /* PROGRESS BAR */
+        .progress-bar {
+            height: 6px;
+            background: #eee;
+            width: 100%;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+            }
+
+            .screen {
+                padding: 40px 25px;
+                min-height: auto;
+            }
+
+            .initial-screen h1 {
+                font-size: 2em;
+            }
+
+            .question-screen h2 {
+                font-size: 1.3em;
+            }
+
+            .emoji-large {
+                font-size: 3em;
+            }
+
+            .study-data,
+            .results-card {
+                padding: 25px;
+            }
+        }
+
+        .next-btn {
+            margin-top: 30px;
+        }
+
+        .restart-btn {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- PROGRESS BAR -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <!-- PANTALLA INICIAL -->
+        <div class="screen initial-screen active" id="screenInitial">
+            <div class="emoji-large">🚌</div>
+            <h1>Simulador de viaje al TDEA</h1>
+            <h2>Descubre cómo el transporte público afecta tu día como estudiante</h2>
+            <p style="color: #999; margin-bottom: 30px; font-size: 0.95em;">
+                Basado en una investigación real sobre estudiantes de Negocios Internacionales
+            </p>
+            <button class="btn-primary" onclick="startSimulation()" style="align-self: center; padding: 18px 50px; font-size: 1.1em;">
+                🎮 Iniciar Simulación
+            </button>
+        </div>
+
+        <!-- PREGUNTA 1: TRANSPORTE -->
+        <div class="screen question-screen" id="screenQuestion1">
+            <h2>¿Qué medio de transporte utilizas?</h2>
+            <div class="options-container">
+                <button class="option-btn" onclick="selectTransport('bus')">🚍 BUS</button>
+                <button class="option-btn" onclick="selectTransport('metro')">🚆 METRO</button>
+                <button class="option-btn" onclick="selectTransport('combined')">🚌 BUS + METRO</button>
+            </div>
+        </div>
+
+        <!-- PREGUNTA 2: JORNADA -->
+        <div class="screen question-screen" id="screenQuestion2">
+            <h2>¿En qué jornada estudias?</h2>
+            <div class="options-container">
+                <button class="option-btn" onclick="selectShift('morning')">☀️ MAÑANA (7:00 a.m.)</button>
+                <button class="option-btn" onclick="selectShift('afternoon')">🌇 TARDE (1:00 p.m.)</button>
+                <button class="option-btn" onclick="selectShift('night')">🌙 NOCHE (6:00 p.m.)</button>
+            </div>
+        </div>
+
+        <!-- PREGUNTA 3: TIEMPO DE VIAJE -->
+        <div class="screen question-screen" id="screenQuestion3">
+            <h2>¿Cuánto tiempo tardas en llegar al TDEA?</h2>
+            <div class="options-container">
+                <button class="option-btn" onclick="selectTravelTime('short')">⏱️ MENOS DE 30 MIN (20%)</button>
+                <button class="option-btn" onclick="selectTravelTime('medium')">🕒 30 MIN - 1 HORA (30%)</button>
+                <button class="option-btn" onclick="selectTravelTime('long')">🚌 1 HORA - 1H30 (40%)</button>
+                <button class="option-btn" onclick="selectTravelTime('verylong')">🕗 MÁS DE 1H30 (10%)</button>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE RESULTADOS -->
+        <div class="screen results-screen" id="screenResults">
+            <div class="results-card">
+                <h2 id="resultTitle">Tu Experiencia de Viaje</h2>
+                <p id="resultDescription"></p>
+
+                <div class="result-stat">
+                    <span class="emoji-inline" id="emotionEmoji">😊</span>
+                    <div>
+                        <strong id="emotionText">Emoción durante el viaje</strong>
+                    </div>
+                </div>
+
+                <div class="result-stat">
+                    <span class="emoji-inline" id="safetyEmoji">🙂</span>
+                    <div>
+                        <strong id="safetyText">Sensación de seguridad</strong>
+                    </div>
+                </div>
+
+                <div class="result-stat">
+                    <span class="emoji-inline" id="performanceEmoji">📚</span>
+                    <div>
+                        <strong id="performanceText">Impacto en rendimiento académico</strong>
+                    </div>
+                </div>
+
+                <div class="result-stat">
+                    <span class="emoji-inline" id="delayEmoji">⏰</span>
+                    <div>
+                        <strong id="delayText">Frecuencia de retrasos</strong>
+                    </div>
+                </div>
+
+                <div class="insight">
+                    <p id="insightText"></p>
+                </div>
+            </div>
+
+            <!-- DATOS DEL ESTUDIO -->
+            <div class="study-data">
+                <h3>📊 Datos Reales del Estudio</h3>
+
+                <div class="data-section">
+                    <h4>🚗 Principales Problemas del Transporte Público</h4>
+                    <div class="data-item">
+                        <span class="emoji-data">🚗</span>
+                        <span>Congestión: <span class="percentage">80%</span></span>
+                    </div>
+                    <div class="data-item">
+                        <span class="emoji-data">🕐</span>
+                        <span>Retrasos: <span class="percentage">70%</span></span>
+                    </div>
+                    <div class="data-item">
+                        <span class="emoji-data">🗺️</span>
+                        <span>Falta de rutas directas: <span class="percentage">50%</span></span>
+                    </div>
+                    <div class="data-item">
+                        <span class="emoji-data">🚨</span>
+                        <span>Inseguridad: <span class="percentage">30%</span></span>
+                    </div>
+                </div>
+
+                <div class="data-section">
+                    <h4>💭 Emociones Durante el Viaje</h4>
+                    <div class="data-item">
+                        <span class="emoji-data">😩</span>
+                        <span>Fatiga: <span class="percentage">50%</span></span>
+                    </div>
+                    <div class="data-item">
+                        <span class="emoji-data">😠</span>
+                        <span>Estrés: <span class="percentage">30%</span></span>
+                    </div>
+                    <div class="data-item">
+                        <span class="emoji-data">😌</span>
+                        <span>Tranquilidad: <span class="percentage">20%</span></span>
+                    </div>
+                </div>
+
+                <div class="data-section">
+                    <h4>💡 Propuestas de Mejora</h4>
+                    <div class="data-item">
+                        <span class="emoji-data">🚍</span>
+                        <span>Más rutas directas: <span class="percentage">90%</span> apoyo</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="emoji-data">🔒</span>
+                        <span>Mayor seguridad: <span class="percentage">40%</span> solicitan</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="emoji-data">💰</span>
+                        <span>Menores costos: <span class="percentage">30%</span> solicitan</span>
+                    </div>
+                </div>
+
+                <div class="final-message">
+                    La movilidad influye en la equidad educativa.<br>
+                    ¡Construyamos un transporte más eficiente y humano! 🌍✨
+                </div>
+
+                <div class="btn-container">
+                    <button class="btn-primary restart-btn" onclick="restartSimulation()">
+                        🔄 Nueva Simulación
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado del juego
+        const gameState = {
+            transport: null,
+            shift: null,
+            travelTime: null,
+            currentQuestion: 0
+        };
+
+        // Función: Mostrar/ocultar pantallas
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            updateProgressBar();
+            window.scrollTo(0, 0);
+        }
+
+        // Función: Actualizar barra de progreso
+        function updateProgressBar() {
+            const questions = 3;
+            const progress = (gameState.currentQuestion / questions) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // Función: Iniciar simulación
+        function startSimulation() {
+            gameState.currentQuestion = 0;
+            gameState.transport = null;
+            gameState.shift = null;
+            gameState.travelTime = null;
+            showScreen('screenQuestion1');
+            gameState.currentQuestion = 1;
+        }
+
+        // Función: Seleccionar transporte
+        function selectTransport(type) {
+            gameState.transport = type;
+            showScreen('screenQuestion2');
+            gameState.currentQuestion = 2;
+        }
+
+        // Función: Seleccionar jornada
+        function selectShift(shift) {
+            gameState.shift = shift;
+            showScreen('screenQuestion3');
+            gameState.currentQuestion = 3;
+        }
+
+        // Función: Seleccionar tiempo de viaje
+        function selectTravelTime(time) {
+            gameState.travelTime = time;
+            generateResults();
+            showScreen('screenResults');
+        }
+
+        // Función: Generar resultados
+        function generateResults() {
+            let emotion = '';
+            let emotionEmoji = '';
+            let safety = '';
+            let safetyEmoji = '';
+            let performance = '';
+            let performanceEmoji = '';
+            let delay = '';
+            let delayEmoji = '';
+            let description = '';
+            let title = '';
+            let insight = '';
+
+            // Lógica basada en tiempo de viaje (el factor más importante)
+            if (gameState.travelTime === 'short') {
+                // Menos de 30 minutos - 20%
+                title = '✨ Tu viaje fue ágil';
+                description = 'Eres afortunado: formas parte del 20% de estudiantes que logra desplazarse en menos de 30 minutos al TDEA.';
+                emotion = 'Tranquilidad 😌';
+                emotionEmoji = '😌';
+                safety = 'Seguridad moderada 🙂';
+                safetyEmoji = '🙂';
+                performance = 'Bajo impacto en rendimiento 📈';
+                performanceEmoji = '📈';
+                delay = 'Raramente llega tarde ✅';
+                delayEmoji = '✅';
+                insight = 'Tu corta duración de viaje te permite llegar descansado al TDEA, mejorando tu concentración y participación en clase. Aprovecha este privilegio y considera apoyar a compañeros con trayectos más largos.';
+            } else if (gameState.travelTime === 'medium') {
+                // 30 min - 1 hora - 30%
+                title = '👍 Tu viaje es moderado';
+                description = 'Tu tiempo de desplazamiento es similar al 30% de estudiantes que tarda entre 30 minutos y 1 hora.';
+                emotion = 'Cansancio moderado 😕';
+                emotionEmoji = '😕';
+                safety = 'Sensación relativa de seguridad 🙂';
+                safetyEmoji = '🙂';
+                performance = 'Impacto moderado en rendimiento 📊';
+                performanceEmoji = '📊';
+                delay = 'A veces llega tarde 🕐';
+                delayEmoji = '🕐';
+                insight = 'Tu tiempo de viaje es equilibrado, pero la congestión y retrasos pueden afectar ocasionalmente tu puntualidad. Planifica con anticipación y mantén una rutina consistente.';
+            } else if (gameState.travelTime === 'long') {
+                // 1 hora - 1h30 - 40%
+                title = '😩 Tu viaje fue desafiante';
+                description = 'Compartes la experiencia del 40% de estudiantes que tarda entre 1 y 1.5 horas en llegar al TDEA.';
+                emotion = 'Fatiga y estrés 😩';
+                emotionEmoji = '😩';
+                safety = 'Inseguridad moderada ⚠️';
+                safetyEmoji = '⚠️';
+                performance = 'Impacto significativo en rendimiento 📉';
+                performanceEmoji = '📉';
+                delay = 'Frecuentemente llega tarde ⏰';
+                delayEmoji = '⏰';
+                insight = 'Como el 80% de estudiantes del TDEA, tu rendimiento académico se ve afectado por la movilidad y los largos tiempos de viaje. El cansancio acumulado reduce tu concentración y afecta tu desempeño en clases.';
+            } else if (gameState.travelTime === 'verylong') {
+                // Más de 1h30 - 10%
+                title = '😤 Tu viaje fue muy exigente';
+                description = 'Formas parte del 10% minoritario de estudiantes que tarda más de 1.5 horas en llegar al TDEA.';
+                emotion = 'Agotamiento extremo 😤';
+                emotionEmoji = '😤';
+                safety = 'Preocupación por seguridad 🚨';
+                safetyEmoji = '🚨';
+                performance = 'Impacto crítico en rendimiento ❌';
+                performanceEmoji = '❌';
+                delay = 'Casi siempre llega tarde ⏳';
+                delayEmoji = '⏳';
+                insight = 'Tu trayecto extremadamente largo impacta gravemente en tu bienestar y académicamente. Es urgente que se implementen rutas más directas y eficientes. Tú mereces equidad en tu acceso a la educación.';
+            }
+
+            // Aplicar variaciones según la jornada
+            if (gameState.shift === 'night') {
+                insight += ' Viajar en la noche agrega mayor preocupación por seguridad, común entre el 80% que estudia en jornada nocturna.';
+            }
+
+            // Actualizar elementos en la pantalla
+            document.getElementById('resultTitle').textContent = title;
+            document.getElementById('resultDescription').textContent = description;
+            document.getElementById('emotionEmoji').textContent = emotionEmoji;
+            document.getElementById('emotionText').textContent = emotion;
+            document.getElementById('safetyEmoji').textContent = safetyEmoji;
+            document.getElementById('safetyText').textContent = safety;
+            document.getElementById('performanceEmoji').textContent = performanceEmoji;
+            document.getElementById('performanceText').textContent = performance;
+            document.getElementById('delayEmoji').textContent = delayEmoji;
+            document.getElementById('delayText').textContent = delay;
+            document.getElementById('insightText').textContent = insight;
+        }
+
+        // Función: Reiniciar simulación
+        function restartSimulation() {
+            gameState.currentQuestion = 0;
+            gameState.transport = null;
+            gameState.shift = null;
+            gameState.travelTime = null;
+            showScreen('screenInitial');
+        }
+
+        // Inicializar
+        window.addEventListener('load', () => {
+            updateProgressBar();
+        });
+    </script>
+</body>
+</html>
